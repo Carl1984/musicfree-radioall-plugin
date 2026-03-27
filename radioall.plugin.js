@@ -134,7 +134,7 @@ module.exports = (() => {
   return {
     platform: "广播直播流",
     author: "ChatGPT",
-    version: "0.1.0",
+    version: "0.1.1",
     description: "基于 radioall.json 的在线电台插件（单榜单 + 搜索）",
     cacheControl: "no-cache",
     supportedSearchType: ["music"],

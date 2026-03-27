@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "name": "广播直播流",
+      "url": "https://raw.githubusercontent.com/laozhudu/musicfree-radioall-plugin/master/radioall.plugin.js",
+      "version": "0.1.1"
+    }
+  ]
+}
