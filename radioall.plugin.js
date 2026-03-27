@@ -1,6 +1,10 @@
 module.exports = (() => {
   const DEFAULT_SOURCE_URL =
-    "https://raw.githubusercontent.com/m3u8playlist/m3u8/master/radioall.json";
+    "https://fastly.jsdelivr.net/gh/m3u8playlist/m3u8@master/radioall.json";
+  const FALLBACK_SOURCE_URLS = [
+    "https://cdn.jsdelivr.net/gh/m3u8playlist/m3u8@master/radioall.json",
+    "https://raw.githubusercontent.com/m3u8playlist/m3u8/master/radioall.json",
+  ];
 
   const PAGE_SIZE = 200;
   const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
@@ -54,6 +58,24 @@ module.exports = (() => {
     return await res.json();
   }
 
+  async function fetchFromCandidates(sourceUrl) {
+    const candidates = [sourceUrl].concat(FALLBACK_SOURCE_URLS);
+    let lastError = null;
+
+    for (let i = 0; i < candidates.length; i += 1) {
+      const current = normalizeText(candidates[i]);
+      if (!current) continue;
+      try {
+        const data = await httpGetJson(current);
+        return { data, usedUrl: current };
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw lastError || new Error("无法获取电台列表");
+  }
+
   async function loadChannels(forceRefresh) {
     const userVars = (env && env.getUserVariables && env.getUserVariables()) || {};
     const sourceUrl = normalizeText(userVars.sourceUrl) || DEFAULT_SOURCE_URL;
@@ -66,7 +88,8 @@ module.exports = (() => {
 
     if (cacheValid) return cache;
 
-    const data = await httpGetJson(sourceUrl);
+    const fetched = await fetchFromCandidates(sourceUrl);
+    const data = fetched.data;
     const title = normalizeText(data && data.title) || "电台-全";
     const channels = Array.isArray(data && data.channels) ? data.channels : [];
 
@@ -78,7 +101,7 @@ module.exports = (() => {
     }
 
     cache = {
-      sourceUrl,
+      sourceUrl: fetched.usedUrl || sourceUrl,
       fetchedAt: now(),
       title,
       list,
@@ -131,15 +154,14 @@ module.exports = (() => {
     },
 
     async getTopLists() {
-      const loaded = await loadChannels(false);
       return [
         {
-          title: loaded.title || "电台-全",
+          title: "电台-全",
           data: [
             {
               id: "all",
-              title: loaded.title || "电台-全",
-              description: `共 ${loaded.list.length} 个电台流`,
+              title: "电台-全",
+              description: "点击后加载电台列表",
             },
           ],
         },
@@ -147,11 +169,18 @@ module.exports = (() => {
     },
 
     async getTopListDetail() {
-      const loaded = await loadChannels(false);
-      return {
-        title: loaded.title || "电台-全",
-        musicList: loaded.list,
-      };
+      try {
+        const loaded = await loadChannels(false);
+        return {
+          title: loaded.title || "电台-全",
+          musicList: loaded.list,
+        };
+      } catch (e) {
+        return {
+          title: "电台-全",
+          musicList: [],
+        };
+      }
     },
 
     async getMediaSource(musicItem) {
