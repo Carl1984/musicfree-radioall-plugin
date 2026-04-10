@@ -1,9 +1,9 @@
 module.exports = (() => {
   const DEFAULT_SOURCE_URL =
-    "https://fastly.jsdelivr.net/gh/m3u8playlist/m3u8@master/radioall.json";
+    "https://raw.githubusercontent.com/Carl1984/musicfree-radioall-plugin/refs/heads/master/radioall.json";
   const FALLBACK_SOURCE_URLS = [
-    "https://cdn.jsdelivr.net/gh/m3u8playlist/m3u8@master/radioall.json",
-    "https://raw.githubusercontent.com/m3u8playlist/m3u8/master/radioall.json",
+    "https://raw.githubusercontent.com/Carl1984/musicfree-radioall-plugin/refs/heads/master/radioall.json",
+    "https://raw.githubusercontent.com/Carl1984/musicfree-radioall-plugin/refs/heads/master/radioall.json",
   ];
 
   const PAGE_SIZE = 200;
